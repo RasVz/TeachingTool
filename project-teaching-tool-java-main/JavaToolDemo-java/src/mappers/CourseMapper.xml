@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wtb.javatool.dao.CourseMapper">
+    <select id="findCoursesByTeacherId" resultType="com.wtb.javatool.dto.CourseDto">
+        SELECT
+            count(DISTINCT c.course_id) as count ,
+            c.course_id,
+            c.course_name,
+            c.course_type,
+            oc.academic_year,
+            oc.semester,
+            GROUP_CONCAT(DISTINCT CONCAT(p.project_id, '-', p.project_name) ORDER BY p.project_id SEPARATOR ', ') AS projects,
+            (c.experiment_time + c.practice_time + c.theory_time) AS lesson
+        FROM
+            course AS c
+                INNER JOIN
+            project_course_class_teacher_ref AS pccr ON pccr.course_id = c.course_id
+                INNER JOIN
+            project AS p ON p.project_id = pccr.project_id
+
+                INNER JOIN
+            opening_course AS oc ON oc.course_id = c.course_id
+        WHERE
+            pccr.teacher_id = 1
+        GROUP BY
+            c.course_id,
+            c.course_name,
+            c.course_type,
+            oc.academic_year,
+            oc.semester
+        limit #{begin}, #{size}
+    </select>
+    <select id="findCourseByTeacherIdAndCourseId" parameterType="com.wtb.javatool.dto.CourseDto" resultType="com.wtb.javatool.dto.CourseDto">
+        SELECT
+            c.course_id,
+            c.course_name,
+            c.course_type,
+            oc.academic_year,
+            oc.semester,
+            GROUP_CONCAT(DISTINCT CONCAT(p.project_id, '-', p.project_name) ORDER BY p.project_id SEPARATOR ', ') AS projects,
+            (c.experiment_time + c.practice_time + c.theory_time) AS lesson
+        FROM
+            course AS c
+                INNER JOIN
+            project_course_class_teacher_ref AS pccr ON pccr.course_id = c.course_id
+                INNER JOIN
+            project AS p ON p.project_id = pccr.project_id
+
+                INNER JOIN
+            opening_course AS oc ON oc.course_id = c.course_id
+        WHERE
+            pccr.teacher_id = #{teacherId} AND c.course_id= #{courseId}
+        GROUP BY
+            c.course_id,
+            c.course_name,
+            c.course_type,
+            oc.academic_year,
+            oc.semester;
+    </select>
+    <insert id="createCourse" parameterType="Course">
+        insert into course (course_name,creator_id,
+                            course_status,subject_id,course_type,
+                            project_driven_teaching,create_time)
+        values (#{courseName},#{creatorId},#{courseStatus},#{subjectId},
+                1,#{projectDrivenTeaching},#{createTime});
+    </insert>
+    <select id="findCoursesById" resultType="com.wtb.javatool.entity.Course">
+        select * from course where course_id=#{courseId}
+    </select>
+
+</mapper>

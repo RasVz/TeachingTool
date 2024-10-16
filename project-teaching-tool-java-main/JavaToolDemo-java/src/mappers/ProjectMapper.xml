@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wtb.javatool.dao.ProjectMapper">
+        <select id="findProjectByCourseId" resultType="com.wtb.javatool.vo.CourseTaskListCard">
+            SELECT
+                p.project_id,
+                p.project_name,
+--                 case统计所有task状态为2和1的数量如果符合条件就输出1否则为null，count会统计非null数据的数量并赋值给finishTask
+                COUNT(CASE WHEN a.task_status = 2 THEN 1 END) AS finishTask,
+                COUNT(CASE WHEN a.task_status = 1 THEN 1 END) AS unfinishedTask
+            FROM
+                course AS c
+                    LEFT JOIN
+                project_course_class_teacher_ref AS pcctr ON c.course_id = pcctr.course_id
+                    LEFT JOIN
+                project AS p ON pcctr.project_id = p.project_id
+                    LEFT JOIN
+                task AS t ON p.project_id = t.project_id
+                    LEFT JOIN
+                assignment AS a ON t.task_id = a.task_id
+            WHERE
+                c.course_id = #{courseId}
+            GROUP BY
+                p.project_id, p.project_name;
+        </select>
+
+</mapper>

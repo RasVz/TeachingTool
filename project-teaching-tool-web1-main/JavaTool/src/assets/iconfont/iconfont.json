@@ -1,0 +1,23 @@
+{
+  "id": "3063138",
+  "name": "人社工具",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "702489",
+      "name": "flashlight",
+      "font_class": "flashlight",
+      "unicode": "e838",
+      "unicode_decimal": 59448
+    },
+    {
+      "icon_id": "1444540",
+      "name": "flashlight-off",
+      "font_class": "flashlight-off",
+      "unicode": "e742",
+      "unicode_decimal": 59202
+    }
+  ]
+}

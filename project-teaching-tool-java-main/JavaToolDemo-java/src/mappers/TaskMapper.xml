@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wtb.javatool.dao.TaskMapper">
+
+    <select id="selectTaskById" parameterType="com.wtb.javatool.entity.Task" resultType="com.wtb.javatool.entity.Task">
+        select * from task where task_id in
+                            <foreach collection="list" item="taskId" open="(" separator="," close=")">
+                                #{taskId}
+                            </foreach>
+    </select>
+    <delete id="deleteTaskById">
+        delete from task where task_id in
+                            <foreach collection="list" item="taskId" open="(" separator="," close=")">
+                                #{taskId}
+                            </foreach>
+    </delete>
+    <select id="selectTaskByProjectId" resultType="com.wtb.javatool.dto.TaskDto">
+        select * from task where project_id
+    </select>
+
+
+    <select id="findTasksByCourseId"  resultType="com.wtb.javatool.dto.TaskDto">
+        SELECT
+            t.task_id, t.task_name,  t.project_id, t.create_time, t.task_description, t.creator_id,  t.task_type,p.project_name,
+            GROUP_CONCAT(DISTINCT CONCAT(d.deliverable_id, '-', d.deliverable_name) ORDER BY p.project_id SEPARATOR ', ') AS deliverables ,
+            GROUP_CONCAT(DISTINCT CONCAT(a.team_id, '-',team.team_name,'-',tcts.class_id,'-',tc.class_name) ORDER BY a.team_id SEPARATOR ', ') AS teams
+
+        FROM task AS t
+                 INNER JOIN
+             project_course_class_teacher_ref AS pccr ON pccr.project_id = t.project_id
+                 INNER JOIN
+             project AS p ON p.project_id = t.project_id
+                 LEFT JOIN
+             deliverable AS d ON d.task_id = t.task_id
+                 LEFT JOIN
+             assignment AS a ON a.task_id = t.task_id
+                 LEFT  JOIN
+             team ON team.team_id = a.team_id
+                 LEFT JOIN
+             teaching_class_team_student_ref AS tcts ON tcts.team_id = team.team_id
+                 LEFT JOIN
+             teaching_class AS tc ON tc.class_id = tcts.class_id
+        WHERE pccr.course_id = #{courseId}
+        GROUP BY task_id
+    </select>
+
+    <insert id="createTask" useGeneratedKeys="true" keyProperty="taskId">
+        insert into task(task_name,project_id,task_description,
+                         creator_id,create_time,task_type)
+        values(#{taskName},#{projectId},#{taskDescription},
+               #{creatorId},#{createTime},#{taskType});
+    </insert>
+
+
+    <insert id="addDeliverable" parameterType="java.util.List">
+        INSERT INTO deliverable (deliverable_name, deliverable_url, task_id)
+        VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.deliverableName}, #{item.deliverableUrl}, #{taskId})
+        </foreach>
+    </insert>
+
+    <select id="findTaskStatus">
+        SELECT DISTINCT tc.class_id, tc.class_name,team_name,student_name,
+                        task_name,task_description,end_time,task_status
+        FROM teaching_class AS tc
+                 JOIN project_course_class_teacher_ref AS tctcr ON tctcr.class_id = tc.class_id
+                 JOIN teaching_class_team_student_ref AS tctsr ON tctsr.class_id = tc.class_id
+                 LEFT JOIN team AS t ON t.team_id = tctsr.team_id
+                 LEFT JOIN student AS s ON s.student_id = t.team_leader
+                 LEFT JOIN assignment AS a ON a.team_id = t.team_id
+                 LEFT JOIN task AS task ON task.task_id = a.task_id
+        WHERE tctcr.course_id = #{courseId};
+    </select>
+</mapper>

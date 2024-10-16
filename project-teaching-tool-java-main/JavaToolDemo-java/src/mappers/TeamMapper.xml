@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wtb.javatool.dao.TeamMapper">
+    <select id="findTeamByClassIds"  resultType="com.wtb.javatool.entity.Team">
+
+            select t.team_id,t.team_name,tc.class_id,tc.class_name
+            from teaching_class_team_student_ref AS tcts
+                LEFT JOIN
+        team AS t ON t.team_id = tcts.team_id
+        LEFT JOIN
+        teaching_class AS tc ON tc.class_id = tcts.team_id
+            where tcts.class_id in
+            <foreach collection="list" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+    </select>
+</mapper>
